@@ -15,7 +15,7 @@ await whook.verify(JSON.stringify(req.body), headers);
 
         const { data, type } = req.body;
 
-        // ✅ Process events
+        
         switch (type) {
             case "user.created": {
                 const userData = {
