@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const bookingSchema = new mongoose.Schema({
-    user : {type : String , ref : "User" ,required : true},
+    user : {type : String , ref : "User" ,required : true},//in this user we will store the entire information of the use that we will get from the user model so add ref
     room : {type : String , ref : "Room" ,required : true},
     hotel : {type : String , ref : "Hotel" ,required : true},
     CheckInDate : {type : Date ,required : true},
@@ -21,6 +21,6 @@ const bookingSchema = new mongoose.Schema({
     isPaid :{type : Boolean ,default : false}
 },{timestamps : true});
 
-const Booking = mongoose.model("Booking", bookingSchema)
+const Booking = mongoose.model("Booking", bookingSchema) //booking model 
 
 export default Booking ;

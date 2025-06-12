@@ -1,37 +1,36 @@
-import User from "../models/user.js"; // ✅ You need to import the User model to call `user.save()`
+//api to get the userdata from the database 
+import User from "../models/user.js"; 
 
 // GET /api/user
+// function to get user data like role and recent searched cities from the database
 export const getUserData = async (req, res) => {
     try {
         const role = req.user.role;
-        const recentSearchCities = req.user.recentSearchCities;
-        res.json({ success: true, role, recentSearchCities });
+        const recentSearchedCities = req.user.recentSearchedCities;
+        res.json({ success: true, role, recentSearchedCities });
     } catch (error) {
         res.json({ success: false, message: error.message });
     }
 };
 
+// Store recent searched cities in the database
 // POST /api/user/store-recent-search
 export const storeRecentSearchedCities = async (req, res) => {
     try {
-        const { recentSearchCity } = req.body;
-        const user = await User.findById(req.user._id); // ✅ FIXED: get fresh user document for `.save()`
-
-        if (!user.recentSearchCities) {
-            user.recentSearchCities = [];
-        }
+        const { recentSearchedCity } = req.body;
+        const user = await req.user;
 
         // Optional: prevent duplicates
         // user.recentSearchCities = user.recentSearchCities.filter(city => city !== recentSearchCity);
 
-        if (user.recentSearchCities.length < 3) {
-            user.recentSearchCities.push(recentSearchCity);
+        if (user.recentSearchedCities.length < 3) {
+            user.recentSearchedCities.push(recentSearchedCity);
         } else {
-            user.recentSearchCities.shift();
-            user.recentSearchCities.push(recentSearchCity);
+            user.recentSearchedCities.shift();
+            user.recentSearchedCities.push(recentSearchedCity);
         }
 
-        await user.save();
+        await user.save(); //update the user document in the database
 
         res.json({ success: true, message: "City added" });
     } catch (error) {

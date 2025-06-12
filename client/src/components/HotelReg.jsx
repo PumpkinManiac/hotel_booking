@@ -3,21 +3,25 @@ import { assets } from '../assets/assets'
 import { cities } from '../assets/assets'
 import { useAppContext } from '../conext/AppContext'
 import toast from 'react-hot-toast'
+import { useUser } from '@clerk/clerk-react';
 
 const HotelReg = () => {
 
   const { setShowHotelReg, axios, getToken, setIsOwner } = useAppContext();
 
+  //store the form data
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [contact, setContact] = useState("");
   const [city, setCity] = useState("");
 
+  //API call to register hotel
+
   const onSubmitHandler = async (event) => {
     try {
-      event.preventDefault();
+      event.preventDefault(); //prevent the web page from refreshing when the form is submitted
       const { data } = await axios.post(`/api/hotels`, { name, contact, city, address }, {
-        headers: { Authorization: `Bearer ${await getToken()}` }
+        headers: { Authorization: `Bearer ${await getToken()}` } //this will call the api endpoint and we will get data here
       });
       if (data.success) {
         toast.success(data.message);

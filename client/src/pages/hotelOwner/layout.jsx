@@ -8,10 +8,11 @@ const layout = () => {
   const {isOwner, navigate} = useAppContext()
 
   useEffect(()=>{
-    if(!isOwner){
+    if(!isOwner){ //user is not owner
       navigate('/')
     }
   },[isOwner])
+  
   return (
     <div className='flex flex-col h-screen'>
       <Navbar></Navbar>

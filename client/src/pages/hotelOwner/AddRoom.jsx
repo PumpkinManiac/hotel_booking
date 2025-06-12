@@ -5,6 +5,7 @@ import { useAppContext } from '../../conext/AppContext';
 import toast from 'react-hot-toast';
 
 const AddRoom = () => {
+
   const { axios, getToken } = useAppContext();
 
   const [images, setImages] = useState({
@@ -34,18 +35,20 @@ const AddRoom = () => {
     if (
       !inputs.roomType ||
       !inputs.pricePerNight ||
-      Object.values(images).some((img) => img === null)
+      !inputs.amenities ||
+      !Object.values(images).some(image => image)
     ) {
       toast.error('Please fill all the fields and upload all 4 images');
       return;
     }
-
+    //If all the data is available
     setLoading(true);
+
     try {
       const formData = new FormData();
       formData.append('roomType', inputs.roomType);
       formData.append('pricePerNight', inputs.pricePerNight);
-
+      //Converting Amenities to Array & keeping only enabled Amenities
       const amenities = Object.keys(inputs.amenities).filter(
         (key) => inputs.amenities[key]
       );
@@ -53,9 +56,9 @@ const AddRoom = () => {
 
       // Add images
       Object.keys(images).forEach((key) => {
-        if (images[key]) formData.append('images', images[key]);
+        (images[key]) && formData.append('images', images[key]);
       });
-
+      //API call
       const { data } = await axios.post('/api/rooms', formData, {
         headers: { Authorization: `Bearer ${await getToken()}` },
       });

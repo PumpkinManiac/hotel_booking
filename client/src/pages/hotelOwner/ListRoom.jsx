@@ -11,6 +11,7 @@ const ListRoom = () => {
     //Fetch Rooms of the Hotel Onwer
     const fetchRooms = async () => {
         try {
+            //API call
             const {data} = await axios.get('/api/rooms/owner', {
                 headers :{Authorization : `Bearer ${await getToken()}`}
             });
@@ -18,7 +19,7 @@ const ListRoom = () => {
             if(data.success){
                 setRooms(data.rooms);
             } else {
-                toast(data.message);
+                toast.error(data.message);
             }
         } catch (error) {
             toast.error(error.message);
@@ -37,7 +38,7 @@ const ListRoom = () => {
     }
 
     useEffect(() => {
-        if(user){
+        if(user){ 
             fetchRooms();
         }
     },[user])

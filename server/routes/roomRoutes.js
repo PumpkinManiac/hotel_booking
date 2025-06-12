@@ -9,7 +9,7 @@ roomRouter.post('/',upload.array("images",4),protect,createRoom)
 
 roomRouter.get('/',getRooms)
 
-roomRouter.get('/owner',protect,getOwnerRooms)
+roomRouter.get('/owner',protect,getOwnerRooms)//to get the room data for particular room owner
 
 roomRouter.post('/toggle-availability',protect,toggleRoomAvailability)
 

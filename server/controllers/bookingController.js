@@ -5,19 +5,20 @@ import Room from "../models/Room.js";
 
 // Helper function to check room availability
 const checkAvailability = async ({ checkInDate, checkOutDate, room }) => {
-  try {
+  try { //to find the room
     const bookings = await Booking.find({
       room,
       checkInDate: { $lte: checkOutDate },
       checkOutDate: { $gte: checkInDate },
     });
-    return bookings.length === 0;
+    const isAvailable = bookings.length === 0;
+    return isAvailable;
+
   } catch (error) {
     console.error("Availability check error:", error.message);
-    return false;
   }
 };
-
+//Api to check room availability
 // POST /api/bookings/check-availability
 export const checkAvailabilityAPI = async (req, res) => {
   try {
@@ -25,38 +26,34 @@ export const checkAvailabilityAPI = async (req, res) => {
     const isAvailable = await checkAvailability({ checkInDate, checkOutDate, room });
     res.json({ success: true, isAvailable });
   } catch (error) {
-    console.error(error);
     res.json({ success: false, message: error.message });
   }
 };
-
+//Api to create a booking
 // POST /api/bookings/book
 export const createBooking = async (req, res) => {
   try {
+    //Before Booking check Availability
     const { room, checkInDate, checkOutDate, guests } = req.body;
     const user = req.user._id;
-
-    if (!guests || guests <= 0) {
-      return res.json({ success: false, message: "Guest count is invalid" });
-    }
-
     const isAvailable = await checkAvailability({ checkInDate, checkOutDate, room });
     if (!isAvailable) {
       return res.json({ success: false, message: "Room is not Available" });
     }
-
+    //Get TotalPice for Room
     const roomData = await Room.findById(room).populate("hotel");
-    if (!roomData || !roomData.hotel) {
-      return res.json({ success: false, message: "Room or hotel data not found" });
-    }
+
+    let totalPrice = roomData.pricePerNight;
+    //Calculate price based on nights
 
     const checkIn = new Date(checkInDate);
     const checkOut = new Date(checkOutDate);
 
     const timeDiff = checkOut.getTime() - checkIn.getTime();
     const nights = Math.ceil(timeDiff / (1000 * 3600 * 24));
-    const totalPrice = roomData.pricePerNight * nights;
-
+    
+    totalPrice *= nights;
+    //these data will be stored in database when we create new booking
     const booking = await Booking.create({
       user,
       room,
@@ -95,34 +92,35 @@ export const createBooking = async (req, res) => {
 
     res.json({ success: true, message: "Booking created successfully" });
   } catch (error) {
-    console.error("Booking error:", error);
-    res.json({ success: false, message: error.message });
+    console.log(error);
+    res.json({ success: false, message: "Failed to create booking" });
   }
 };
-
+//API to get all bookings of a user
 // GET /api/bookings/user
 export const getUserBookings = async (req, res) => {
   try {
     const user = req.user._id;
+    //to find the bookings of the user
     const bookings = await Booking.find({ user })
       .populate("room hotel")
       .sort({ createdAt: -1 });
 
     res.json({ success: true, bookings });
   } catch (error) {
-    console.error(error);
-    res.json({ success: false, message: error.message });
+    res.json({ success: false, message: "Failed to fetch bookings" });
   }
 };
 
 // GET /api/bookings/hotel-owner
 export const getHotelBookings = async (req, res) => {
   try {
-    const hotel = await Hotel.findOne({ owner: req.user._id });
+    // find the hotel for particular owner
+    const hotel = await Hotel.findOne({ owner: req.auth.userId });
     if (!hotel) {
       return res.json({ success: false, message: "No hotel found for this owner" });
     }
-
+    // find the bookings for that hotel of that owner
     const bookings = await Booking.find({ hotel: hotel._id })
       .populate("room hotel user")
       .sort({ createdAt: -1 });
@@ -139,7 +137,6 @@ export const getHotelBookings = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error(error);
     res.json({ success: false, message: "Failed to fetch booking" });
   }
 };

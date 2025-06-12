@@ -26,7 +26,7 @@ const Dashboard = () => {
       toast.error(error.message);
     }
   };
-
+//call the function whenever page get lodded
   useEffect(() => {
     if (user) {
       fetchDashboardData();

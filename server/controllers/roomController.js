@@ -6,22 +6,25 @@ import { v2 as cloudinary } from "cloudinary";
 export const createRoom = async (req, res) => {
     try {
         const { roomType, pricePerNight, amenities } = req.body;
-        const hotel = await Hotel.findOne({ owner: req.auth.userId });
+        const hotel = await Hotel.findOne({ owner: req.auth.userId }); //find the hotel by owner ID
 
         if (!hotel) return res.json({ success: false, message: "No Hotel found" });
 
         // Upload images to Cloudinary
-        const uploadImage = req.files.map(file =>
-            cloudinary.uploader.upload(file.path).then(response => response.secure_url)
+        const uploadImages = req.files.map(async (file) =>{
+             const response = await cloudinary.uploader.upload(file.path);
+             return response.secure_url; // Return the secure URL of the uploaded image
+        }
         );
+        //Wait for all images to be uploaded
+        const images = await Promise.all(uploadImages);
 
-        const images = await Promise.all(uploadImage);
-
+        //Store the data in the database
         await Room.create({
             hotel: hotel._id,
             roomType,
-            pricePerNight: +pricePerNight,
-            amenities: typeof amenities === "string" ? JSON.parse(amenities) : amenities,
+            pricePerNight: +pricePerNight, // Convert pricePerNight {string} to a number
+            amenities: JSON.parse(amenities),
             images,
         });
 
@@ -31,9 +34,10 @@ export const createRoom = async (req, res) => {
     }
 };
 
-// API to get all rooms
+// API to get all rooms to display on the frontend
 export const getRooms = async (req, res) => {
     try {
+        //It will find the room where isAvailable is true and in that room data it will add hotel also
         const rooms = await Room.find({ isAvailable: true }).populate({
             path: 'hotel',
             populate: {
@@ -52,9 +56,9 @@ export const getRooms = async (req, res) => {
 export const getOwnerRooms = async (req, res) => {
     try {
         const hotelData = await Hotel.findOne({ owner: req.auth.userId });
-        if (!hotelData) return res.json({ success: false, message: "Hotel not found" });
 
-        const rooms = await Room.find({ hotel: hotelData._id.toString() }).populate('hotel');
+        const rooms = await Room.find({hotel: hotelData._id.toString()}).populate('hotel');
+
         res.json({ success: true, rooms });
     } catch (error) {
         res.json({ success: false, message: error.message });
@@ -66,7 +70,6 @@ export const toggleRoomAvailability = async (req, res) => {
     try {
         const { roomId } = req.body;
         const roomData = await Room.findById(roomId);
-        if (!roomData) return res.json({ success: false, message: "Room not found" });
 
         roomData.isAvailable = !roomData.isAvailable;
         await roomData.save();

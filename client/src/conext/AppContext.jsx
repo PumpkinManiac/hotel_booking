@@ -4,14 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import { useUser, useAuth } from '@clerk/clerk-react';
 import { toast } from 'react-hot-toast';
 
+//axios package for API call
 axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
 
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
+
   const currency = import.meta.env.VITE_CURRENCY || 'USD';
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user } = useUser(); //extract the user from Clerk's useUser hook
   const { getToken } = useAuth();
 
   const [isOwner, setIsOwner] = useState(false);
@@ -21,7 +23,7 @@ export const AppProvider = ({ children }) => {
 
   const fetchRooms = async () => {
     try {
-      const { data } = await axios.get('/api/rooms');
+      const { data } = await axios.get('/api/rooms'); 
       if (data.success) {
         setRooms(data.rooms);
       } else {
@@ -51,7 +53,7 @@ export const AppProvider = ({ children }) => {
       toast.error(error.message);
     }
   };
-
+  //whenever the user changes , excute this function
   useEffect(() => {
     if (user) {
       fetchUser();
@@ -80,5 +82,6 @@ export const AppProvider = ({ children }) => {
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
+//whatever we provide in the value object we can access in any component using useAppContext
 
 export const useAppContext = () => useContext(AppContext);

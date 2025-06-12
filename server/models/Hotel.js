@@ -11,3 +11,5 @@ const hotelSchema = new mongoose.Schema({
 const Hotel = mongoose.model("Hotel", hotelSchema)
 
 export default Hotel;
+
+//create a hotel model to store the hotel data in the database
