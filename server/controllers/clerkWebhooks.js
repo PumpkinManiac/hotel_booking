@@ -1,4 +1,3 @@
-import { Message } from "svix/dist/api/message.js";
 import User from "../models/user.js"
 import { Webhook } from "svix"
 
@@ -10,19 +9,20 @@ const clerkWebhooks = async (req, res) => {
         //Getting Header
         const header ={
             "svix-id":red.header["svix-id"],
-            "svix-timestamp":red.header["svix-timestamp"],
-            "svix-signature":red.header["svix-signature"]
+            "svix-timestamp":req.header["svix-timestamp"],
+            "svix-signature":req.header["svix-signature"]
         }
 
         //Verifying Headers
-        await whook.verify(JSON.stringify(req,res),header)
+        await whook.verify(JSON.stringify(req.body),header)
 
         //Geeting data from request body
         const {data,type}  = req.body
 
         
-        switch (type) {
-            case "user.created":{
+    switch (type) {
+
+        case "user.created":{
 
             const userData ={
             _id : data.id,
@@ -33,16 +33,19 @@ const clerkWebhooks = async (req, res) => {
                 await User.create(userData)
                 break;
             }
-            case "user.updated":{
+
+        case "user.updated":{
+
             const userData ={
             _id : data.id,
             email : data.email_addresses[0].email_address,
             username : data.first_name + " " + data.last_name,
             image : data.image_url,
         }
-                await User.findByIdAndUpdate(data.id ,userData)
-                break;
+            await User.findByIdAndUpdate(data.id ,userData)
+            break;
             } 
+            
             case "user.deleted":{
                 await User.findByIdAndDelete(data.id)
                 break;

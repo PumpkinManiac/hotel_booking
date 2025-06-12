@@ -1,3 +1,5 @@
+import User from "../models/user.js"; // ✅ You need to import the User model to call `user.save()`
+
 // GET /api/user
 export const getUserData = async (req, res) => {
     try {
@@ -13,7 +15,7 @@ export const getUserData = async (req, res) => {
 export const storeRecentSearchedCities = async (req, res) => {
     try {
         const { recentSearchCity } = req.body;
-        const user = req.user;
+        const user = await User.findById(req.user._id); // ✅ FIXED: get fresh user document for `.save()`
 
         if (!user.recentSearchCities) {
             user.recentSearchCities = [];
