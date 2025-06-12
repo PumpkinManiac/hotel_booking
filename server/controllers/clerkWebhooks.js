@@ -5,12 +5,16 @@ const clerkWebhooks = async (req, res) => {
     try {
         const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
 
-        // ✅ Correct header access
-        const header = {
-            "svix-id": req.header("svix-id"),
-            "svix-timestamp": req.header("svix-timestamp"),
-            "svix-signature": req.header("svix-signature")
-        };
+ const header = {
+    "svix-id": req.headers["svix-id"],
+    "svix-timestamp": req.headers["svix-timestamp"],
+    "svix-signature": req.headers["svix-signature"]
+};
+
+if (!header["svix-id"] || !header["svix-timestamp"] || !header["svix-signature"]) {
+    return res.status(400).json({ success: false, message: "Missing required headers" });
+}
+
 
         // ✅ Verify the webhook
         const event = whook.verify(JSON.stringify(req.body), header);
