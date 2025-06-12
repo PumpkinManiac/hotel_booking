@@ -8,7 +8,7 @@ const clerkWebhooks = async (req, res) => {
 
         //Getting Header
         const header ={
-            "svix-id":red.header["svix-id"],
+            "svix-id":req.header["svix-id"],
             "svix-timestamp":req.header["svix-timestamp"],
             "svix-signature":req.header["svix-signature"]
         }
@@ -19,7 +19,7 @@ const clerkWebhooks = async (req, res) => {
         //Geeting data from request body
         const {data,type}  = req.body
 
-        
+    //Switch Case to handle different webhook events
     switch (type) {
 
         case "user.created":{
