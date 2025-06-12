@@ -5,20 +5,15 @@ const clerkWebhooks = async (req, res) => {
     try {
         const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
 
- const header = {
+ const headers = {
     "svix-id": req.headers["svix-id"],
     "svix-timestamp": req.headers["svix-timestamp"],
     "svix-signature": req.headers["svix-signature"]
 };
 
-if (!header["svix-id"] || !header["svix-timestamp"] || !header["svix-signature"]) {
-    return res.status(400).json({ success: false, message: "Missing required headers" });
-}
+await whook.verify(JSON.stringify(req.body), headers);
 
-
-        // ✅ Verify the webhook
-        const event = whook.verify(JSON.stringify(req.body), header);
-        const { data, type } = event;
+        const { data, type } = req.body;
 
         // ✅ Process events
         switch (type) {
@@ -36,7 +31,7 @@ if (!header["svix-id"] || !header["svix-timestamp"] || !header["svix-signature"]
             case "user.updated": {
                 const userData = {
                     email: data.email_addresses[0].email_address,
-                    username: `${data.first_name} ${data.last_name}`,
+                    username: data.first_name + " " + data.last_name,
                     image: data.image_url,
                 };
                 await User.findByIdAndUpdate(data.id, userData);
@@ -49,13 +44,13 @@ if (!header["svix-id"] || !header["svix-timestamp"] || !header["svix-signature"]
             }
 
             default:
-                console.log("Unhandled webhook event:", type);
+                break;
         }
 
         res.json({ success: true, message: "Webhook processed" });
     } catch (error) {
-        console.error("Webhook error:", error.message);
-        res.status(400).json({ success: false, message: error.message });
+        console.log(error.message);
+        res.json({success: false, message: error.message });
     }
 };
 
