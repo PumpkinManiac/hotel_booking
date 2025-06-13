@@ -1,74 +1,95 @@
-import React from 'react'
-import { assets } from '../assets/assets'
+import React from 'react';
+import { assets } from '../assets/assets';
 
 const Footer = () => {
   return (
-    <div className= 'bg-[#F6F9FC] text-gray-500/80 pt-8 px-6 md:px-16 lg:px-24 xl:px-32'>
-            <div className='flex flex-wrap justify-between gap-12 md:gap-6'>
-                <div className='max-w-80'>
-                    <img src={assets.logo} alt="logo" className='mb-4 h-8 md:h-9 invert opacity-80' />
-                    <p className='text-sm'>
-                        Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text
-                    </p>
-                    <div className='flex items-center gap-3 mt-4'>
-                        {/* Instagram */}
-                        <img src={assets.instagramIcon} alt='instagram-icon' className='w-6'></img>
-                        {/* Facebook */}
-                        <img src={assets.facebookIcon} alt='facebook-icon' className='w-6'></img>
-                        {/* Twitter */}
-                        <img src={assets.twitterIcon} alt='twitter-icon' className='w-6'></img>
-                        {/* LinkedIn */}
-                        <img src={assets.linkendinIcon} alt='linkedin-icon' className='w-6'></img>
-                    </div>
-                </div>
+    <footer className="bg-[#0f0f1f] text-gray-400 pt-12 px-6 md:px-12 lg:px-20 xl:px-32">
+      {/* Grid Layout */}
+      <div className="max-w-screen-xl mx-auto grid gap-12 md:grid-cols-2 lg:grid-cols-4">
+        {/* Logo & Description */}
+        <div>
+          <img
+            src={assets.logo}
+            alt="QuickStay Logo"
+            className="mb-4 h-9 invert opacity-80"
+          />
+          <p className="text-sm leading-relaxed">
+            Discover a new way to travel. Find your ideal stay with comfort, convenience, and inspiration wherever you go.
+          </p>
 
-                <div>
-                    <p className='font-playfair text-lg text-gray-800'>COMPANY</p>
-                    <ul className='mt-3 flex flex-col gap-2 text-sm'>
-                        <li><a href="#">About</a></li>
-                        <li><a href="#">Careers</a></li>
-                        <li><a href="#">Press</a></li>
-                        <li><a href="#">Blog</a></li>
-                        <li><a href="#">Partners</a></li>
-                    </ul>
-                </div>
+          {/* Social Icons */}
+          <div className="flex items-center gap-4 mt-4">
+            {[assets.instagramIcon, assets.facebookIcon, assets.twitterIcon, assets.linkendinIcon].map((icon, idx) => (
+              <img
+                key={idx}
+                src={icon}
+                alt={`social-icon-${idx}`}
+                className="w-5 opacity-70 hover:opacity-100 hover:scale-110 transition-transform duration-200"
+              />
+            ))}
+          </div>
+        </div>
 
-                <div>
-                    <p className='font-playfair text-lg text-gray-800'>SUPPORT</p>
-                    <ul className='mt-3 flex flex-col gap-2 text-sm'>
-                        <li><a href="#">Help Center</a></li>
-                        <li><a href="#">Safety Information</a></li>
-                        <li><a href="#">Cancellation Options</a></li>
-                        <li><a href="#">Contact Us</a></li>
-                        <li><a href="#">Accessibility</a></li>
-                    </ul>
-                </div>
+        {/* Company Links */}
+        <div>
+          <p className="font-semibold text-white text-lg mb-4">Company</p>
+          <ul className="space-y-2 text-sm">
+            <li><a href="#" className="hover:text-white transition">About</a></li>
+            <li><a href="#" className="hover:text-white transition">Careers</a></li>
+            <li><a href="#" className="hover:text-white transition">Press</a></li>
+            <li><a href="#" className="hover:text-white transition">Blog</a></li>
+            <li><a href="#" className="hover:text-white transition">Partners</a></li>
+          </ul>
+        </div>
 
-                <div className='max-w-80'>
-                    <p className=' font-playfair text-lg text-gray-800'>STAY UPDATED</p>
-                    <p className='mt-3 text-sm'>
-                        Subscribe to our newsletter for inspiration and special offers.
-                    </p>
-                    <div className='flex items-center mt-4'>
-                        <input type="text" className='bg-white rounded-l border border-gray-300 h-9 px-3 outline-none' placeholder='Your email' />
-                        <button className='flex items-center justify-center bg-black h-9 w-9 aspect-square rounded-r'>
-                            {/* Arrow icon */}
-                            <img src={assets.arrowIcon} alt='arrow-icon' className='w-3.5 invert'></img>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <hr className='border-gray-300 mt-8' />
-            <div className='flex flex-col md:flex-row gap-2 items-center justify-between py-5'>
-                <p>© {new Date().getFullYear()} QuickStay. All rights reserved.</p>
-                <ul className='flex items-center gap-4'>
-                    <li><a href="#">Privacy</a></li>
-                    <li><a href="#">Terms</a></li>
-                    <li><a href="#">Sitemap</a></li>
-                </ul>
-            </div>
-    </div>
-  )
-}
+        {/* Support Links */}
+        <div>
+          <p className="font-semibold text-white text-lg mb-4">Support</p>
+          <ul className="space-y-2 text-sm">
+            <li><a href="#" className="hover:text-white transition">Help Center</a></li>
+            <li><a href="#" className="hover:text-white transition">Safety Info</a></li>
+            <li><a href="#" className="hover:text-white transition">Cancellation</a></li>
+            <li><a href="#" className="hover:text-white transition">Contact Us</a></li>
+            <li><a href="#" className="hover:text-white transition">Accessibility</a></li>
+          </ul>
+        </div>
 
-export default Footer
+        {/* Newsletter */}
+        <div>
+          <p className="font-semibold text-white text-lg mb-4">Stay Updated</p>
+          <p className="text-sm mb-3">
+            Subscribe to our newsletter for travel ideas and special offers.
+          </p>
+          <form className="flex items-center mt-2">
+            <input
+              type="email"
+              placeholder="Your email"
+              className="w-full rounded-l bg-white/10 border border-white/20 text-sm px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            />
+            <button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 transition-all duration-200 p-2 rounded-r"
+            >
+              <img src={assets.arrowIcon} alt="arrow-icon" className="w-4 invert" />
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <hr className="my-10 border-white/10" />
+
+      {/* Footer Bottom */}
+      <div className="max-w-screen-xl mx-auto flex flex-col md:flex-row items-center justify-between text-xs text-gray-500 gap-4 pb-8">
+        <p>© {new Date().getFullYear()} QuickStay. All rights reserved.</p>
+        <ul className="flex items-center gap-4">
+          <li><a href="#" className="hover:text-white transition">Privacy</a></li>
+          <li><a href="#" className="hover:text-white transition">Terms</a></li>
+          <li><a href="#" className="hover:text-white transition">Sitemap</a></li>
+        </ul>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;

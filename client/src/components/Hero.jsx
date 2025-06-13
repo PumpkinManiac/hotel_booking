@@ -1,79 +1,136 @@
-import React, { useState } from 'react'
-import { assets, cities } from '../assets/assets'
-import { useAppContext } from '../conext/AppContext'
+import React, { useState } from 'react';
+import { assets, cities } from '../assets/assets';
+import { useAppContext } from '../conext/AppContext';
 
 const Hero = () => {
+  const [destination, setDestination] = useState('');
+  const { navigate, getToken, axios, setSearchedCities } = useAppContext();
 
-    const [destination ,setDestination] = useState("")
-    const {navigate , getToken , axios , setSearchedCities} = useAppContext();
-    const onSearch = async (e) => {
-        e.preventDefault();
-        navigate(`/rooms?destination = ${destination}`)
-        //call api to save recent searched city
-        await axios.post('/api/user/store-recent-search', {recentSearchedCity : destination} ,{header : {Authorization : `Bearer ${await getToken()}`}})
+  const onSearch = async (e) => {
+    e.preventDefault();
+    navigate(`/rooms?destination=${destination.trim()}`);
 
-        //andd destination to searchdCities max 3 recent seached cities
+    await axios.post(
+      '/api/user/store-recent-search',
+      { recentSearchedCity: destination },
+      { headers: { Authorization: `Bearer ${await getToken()}` } }
+    );
 
-        setSearchedCities((prevSearchedCities) =>{
-            const updatedSearchedCities = [...prevSearchedCities , destination]
-            if (updatedSearchedCities.length > 3){
-                updatedSearchedCities.shift();
-            }
-            return updatedSearchedCities;
-            })
-    }
+    setSearchedCities((prev) => {
+      const updated = [...new Set([destination, ...prev])].slice(0, 3);
+      return updated;
+    });
+  };
 
   return (
-    <div className='flex flex-col items-start justify-center px-6 md:px-16 lg:px-24 xl:px-32 text-white bg-[url("/src/assets/heroImage.png")] bg-no-repeat bg-cover bg-center h-screen' >
-      <p className='bg-[#49B9FF]/50 px-3.5 py-1 rounded-full mt-20'>The Ultimate Hotel Experience</p>
-      <h1 className='font-playfair text-2xl md:text-5xl ms:text-[56px] md:leading-[56px] font-bold md:font-extrabold max-w-xl mt-4'>Discover Your Perfect Gateway Destination</h1>
-      <p className='max-w-130 mt-2 text-sm md:text-base'>sedrtfcvgybhunjmkoijuhygtrdesrdfgyhuijokpiuhygtfrdesrdfcgvhbjkjhgfrtbrtbrvetvsdrtfyguhjinkmldtfyguhij</p>
+    <section
+      className='relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-center bg-cover bg-no-repeat px-4 sm:px-6 lg:px-8 bg-[url("/src/assets/heroImage.png")] '
+    >
+      {/* Dark overlay */}
+      <span
+        aria-hidden="true"
+        className="absolute inset-0 bg-black/50 backdrop-brightness-75 backdrop-blur-sm"
+      />
 
-        <form onSubmit={onSearch} className='bg-white text-gray-500 rounded-lg px-6 py-4 mt-8 flex flex-col md:flex-row max-md:items-start gap-4 max-md:mx-auto'>
+      <div className="relative z-10 mx-auto flex w-full max-w-screen-xl flex-col gap-10 md:flex-row md:items-start">
+        {/* Copy */}
+        <div className="flex-1 text-white space-y-5 mt-20 md:mt-6 ml-12">
+          <span className="inline-block rounded-full bg-sky-500/70 px-4 py-1 text-xs font-semibold tracking-wide sm:text-sm">
+            The Ultimate Hotel Experience
+          </span>
 
-            <div>
-                <div className='flex items-center gap-2'>
-                    <img src={assets.calenderIcon} alt='' className='h-4'></img>
-                    <label htmlFor="destinationInput">Destination</label>
-                </div>
-                <input onChange={(e) => setDestination(e.target.value)} value={destination} list='destinations' id="destinationInput" type="text" className=" rounded border border-gray-200 px-3 py-1.5 mt-1.5 text-sm outline-none" placeholder="Type here" required />
-                <datalist id='destinations'>
-                    {cities.map((city, index) => (
-                        <option key={index} value={city}>
-                        </option>
-                    ))}
-                </datalist>
-            </div>
+          <h1 className="font-playfair text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight">
+            Discover Your Perfect Gateway Destination
+          </h1>
 
-            <div>
-                <div className='flex items-center gap-2'>
-                    <img src={assets.calenderIcon} alt="" className='h-4'></img>
-                    <label htmlFor="checkIn">Check in</label>
-                </div>
-                <input id="checkIn" type="date" className=" rounded border border-gray-200 px-3 py-1.5 mt-1.5 text-sm outline-none" />
-            </div>
-
-            <div>
-                <div className='flex items-center gap-2'>
-                    <img src={assets.calenderIcon} alt="" className='h-4'></img>
-                    <label htmlFor="checkOut">Check out</label>
-                </div>
-                <input id="checkOut" type="date" className=" rounded border border-gray-200 px-3 py-1.5 mt-1.5 text-sm outline-none" />
-            </div>
-
-            <div className='flex md:flex-col max-md:gap-2 max-md:items-center'>
-                <label htmlFor="guests">Guests</label>
-                <input min={1} max={4} id="guests" type="number" className=" rounded border border-gray-200 px-3 py-1.5 mt-1.5 text-sm outline-none  max-w-16" placeholder="0" />
-            </div>
-
-            <button className='flex items-center justify-center gap-1 rounded-md bg-black py-3 px-4 text-white my-auto cursor-pointer max-md:w-full max-md:py-1' >
-                <img src={assets.searchIcon} alt="searchIcon" className='h-7'></img>
-                <span>Search</span>
+          <p className="max-w-md text-sm leading-relaxed sm:text-base md:max-w-lg">
+            Explore our curated stays in popular cities, hand-picked for luxury, comfort, and affordability.
+            Unlock exclusive offers and unforgettable memories, one booking at a time.
+          </p>
+          <button className="rounded-full border border-white/80 px-6 py-2 text-sm font-semibold text-white hover:bg-white/10 transition">
+              Browse Destinations
             </button>
+        </div>
+        
+        {/* Search form */}
+        <form
+          onSubmit={onSearch}
+          className="flex w-full flex-col gap-4 rounded-xl bg-white/90 p-6 shadow-lg backdrop-blur-sm md:w-[420px] mb-5 md:mb-0">
+          {/* Destination */}
+          <label className="flex flex-col gap-1 text-sm font-medium text-gray-700">
+            <span className="flex items-center gap-2">
+              <img src={assets.locationIcon} alt="" className="h-4 w-4" />
+              Destination
+            </span>
+            <input
+              type="text"
+              id="destinationInput"
+              list="destinations"
+              placeholder="Where to?"
+              required
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+              className="rounded-md border border-gray-300 bg-white/80 px-3 py-2 text-gray-800 shadow-sm placeholder:text-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+            />
+            <datalist id="destinations">
+              {cities.map((city, idx) => (
+                <option key={idx} value={city} />
+              ))}
+            </datalist>
+          </label>
+
+          {/* Dates */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <label className="flex flex-col gap-1 text-sm font-medium text-gray-700">
+              <span className="flex items-center gap-2">
+                <img src={assets.calenderIcon} alt="" className="h-4 w-4" />
+                Check‑in
+              </span>
+              <input
+                type="date"
+                id="checkIn"
+                className="rounded-md border border-gray-300 bg-white/80 px-3 py-2 text-gray-800 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+              />
+            </label>
+
+            <label className="flex flex-col gap-1 text-sm font-medium text-gray-700">
+              <span className="flex items-center gap-2">
+                <img src={assets.calenderIcon} alt="" className="h-4 w-4" />
+                Check‑out
+              </span>
+              <input
+                type="date"
+                id="checkOut"
+                className="rounded-md border border-gray-300 bg-white/80 px-3 py-2 text-gray-800 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+              />
+            </label>
+          </div>
+
+          {/* Guests */}
+          <label className="flex flex-col gap-1 text-sm font-medium text-gray-700">
+            <span>Guests</span>
+            <input
+              type="number"
+              id="guests"
+              min={1}
+              max={4}
+              placeholder="0"
+              className="w-20 rounded-md border border-gray-300 bg-white/80 px-3 py-2 text-gray-800 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/50"
+            />
+          </label>
+
+          {/* CTA */}
+          <button
+            type="submit"
+            className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-sky-600 py-3 font-semibold tracking-wide text-white transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
+          >
+            <img src={assets.searchIcon} alt="" className="h-6 w-6" />
+            Search
+          </button>
         </form>
+      </div>
+    </section>
+  );
+};
 
-    </div>
-  )
-}
-
-export default Hero
+export default Hero;
