@@ -1,5 +1,4 @@
 //api to get the userdata from the database 
-import User from "../models/user.js"; 
 
 // GET /api/user
 // function to get user data like role and recent searched cities from the database
@@ -37,3 +36,5 @@ export const storeRecentSearchedCities = async (req, res) => {
         res.json({ success: false, message: error.message });
     }
 };
+
+

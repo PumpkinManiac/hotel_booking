@@ -10,20 +10,22 @@ import connectCloudinary from "./config/cloudinary.js";
 import roomRouter from "./routes/roomRoutes.js";
 import bookingRouter from "./routes/bookingRoutes.js";
 
+const app = express();
+
 connectDB();
+
 connectCloudinary(); //connect to cloudinary for image upload
 
-const app = express();
+app.use(cors()) //Enable Cross-Origin Resource Sharing connect backend to frontend
+
 const port = process.env.port || 3000
 
-app.use(cors()) //Enable Cross-Origin Resource Sharing connect backend to frontend
+//api to listen to clerk webhooks 
+app.post('/api/clerk',express.raw({type : 'application/json'}) , clerkWebhooks)
 
 //middleware    
 app.use(express.json()) //all the request will pass through json method
 app.use(clerkMiddleware())
-
-//api to listen to clerk webhooks 
-app.use('/api/clerk', clerkWebhooks)
 
 app.get('/',(req,res)=>res.send("API is working"))
 app.use('/api/user', userRouter) //when to hit this endpoint it will give usedata like role and recent searched cities

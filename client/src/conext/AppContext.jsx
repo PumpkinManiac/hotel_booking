@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 
 //axios package for API call
 axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
-
+console.log("Axios baseURL:", axios.defaults.baseURL);
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
@@ -38,6 +38,7 @@ export const AppProvider = ({ children }) => {
     try {
       const { data } = await axios.get('/api/user', {
         headers: {
+          
           Authorization: `Bearer ${await getToken()}`
         }
       });
