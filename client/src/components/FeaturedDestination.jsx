@@ -1,29 +1,39 @@
-import React from 'react'
-import HotelCard from './HotelCard'
-import Title from './Title'
-import { useNavigate } from 'react-router-dom'
-import { useAppContext } from '../conext/AppContext'
+import React from 'react';
+import HotelCard from './HotelCard';
+import Title from './Title';
+import { useAppContext } from '../conext/AppContext';
 
 const FeaturedDestination = () => {
+  const { rooms, navigate } = useAppContext();
 
-  const {rooms,navigate} = useAppContext();
+  if (rooms.length === 0) return null;
 
-  return rooms.length > 0 && (
-    <div className='flex flex-col items-center px-6 md:px-16 lg:px-24 bg-slate-50 py-20'>
-        <Title title='Featured Destination' subtitle='Discover our handdpicked selection of expectional properties around the worl offering unparalled luxury and unforgettbale experievce' ></Title>
+  return (
+    <section className="bg-gray-50 py-16 px-4 md:px-16 lg:px-24">
+      <div className="max-w-7xl mx-auto text-center">
+        <Title
+          title="Featured Destinations"
+          subtitle="Discover our handpicked selection of exceptional properties around the world offering unparalleled luxury and unforgettable experiences"
+        />
 
-      <div className='flex flex-wrap items-center justify-center gap-6 mt-20'>
-        {rooms.slice(0,3).map((room, index) => (
-            <HotelCard key={room._id} room={room} index={index} />
-        ))}
-      </div>
+        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {rooms.slice(0, 3).map((room) => (
+            <HotelCard key={room._id} room={room} />
+          ))}
+        </div>
 
-        <button onClick={() => {navigate('/rooms') ; scrollTo(0, 0)}}
-        className='my-16 px-4 py-2 text-sm font-medium border border-gray-300 rounded bg-white hover:bg-gray-50 transition-all cursor-pointer'>
-            View of Destination
+        <button
+          onClick={() => {
+            navigate('/rooms');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className="mt-12 inline-block px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg shadow hover:bg-indigo-700 transition"
+        >
+          View All Destinations
         </button>
-    </div>
-  )
-}
+      </div>
+    </section>
+  );
+};
 
-export default FeaturedDestination
+export default FeaturedDestination;

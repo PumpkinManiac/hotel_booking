@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { assets, facilityIcons} from '../assets/assets';
 import Rating from '../components/Rating';
 import { useAppContext } from '../conext/AppContext';
+import { useSearchParams } from 'react-router-dom';
 
 const CheckBox = ({ label, selected = false, onChange = () => {} }) => (
   <label className="flex gap-3 items-center cursor-pointer mt-2 text-sm">
@@ -31,7 +32,8 @@ const RadioButton = ({ label, selected = false, onChange = () => {} }) => (
 const AllRooms = () => {
 
   const [openFilters, setOpenFilters] = useState(false);
-  const [searchParams,setSearchParams] = useState()
+  //const [searchParams,setSearchParams] = useState()
+  const [searchParams] = useSearchParams();
   const {rooms,navigate,currency} = useAppContext();
   const [selectedFilters , setSelectedFilters] = useState({
     roomTypes: [],
