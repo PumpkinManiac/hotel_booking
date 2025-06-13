@@ -24,7 +24,7 @@ const Hero = () => {
 
   return (
     <section
-      className='relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-center bg-cover bg-no-repeat px-4 sm:px-6 lg:px-8 bg-[url("/src/assets/heroImage.png")] '
+      className='relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-center bg-cover bg-no-repeat px-4 sm:px-6 lg:px-8 bg-[url("/src/assets/heroImage.jpg")] '
     >
       {/* Dark overlay */}
       <span
