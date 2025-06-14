@@ -7,6 +7,8 @@ import Rating from "../components/Rating";
 import { useAppContext } from "../conext/AppContext";
 import toast from "react-hot-toast";
 
+// Animation variants for fade-in effect
+
 const fadeIn = {
   hidden: { opacity: 0, y: 24 },
   show: i => ({
