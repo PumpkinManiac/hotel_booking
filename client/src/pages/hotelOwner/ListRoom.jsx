@@ -44,37 +44,43 @@ const ListRoom = () => {
     },[user])
 
   return (
-    <div>
-        <Title align='left' font='outfit' title='Room Listings' subtitle='qwertyuiopasdfghjklzxcvbnmlkjhgfdsqwertyuiop'></Title>
+    <section className="min-h-screen bg-gradient-to-br from-gray-100 to-white py-12 px-4 md:px-16 lg:px-24 xl:px-32">
+    <div className="max-w-6xl mx-auto backdrop-blur-md bg-white/70 border border-gray-200 shadow-xl rounded-3xl p-6 md:p-10">
+        <Title align='left' font='outfit' title='Room Listings' subtitle='All the rooms you’ve listed and their current availability'></Title>
         <p className='text-gray-500 mt-8'>All Rooms</p>
         <div className='w-full max-w-3xl text-left border border-gray-300 rounded-lg max-h-80 overflow-y-scroll mt-3'>
-        <table className='w-full'>
-            <thead className='bg-gray-50'>
+
+        {/* Table */}
+        <table className="mt-8 max-h-[420px] overflow-x-auto overflow-y-auto rounded-xl">
+            <thead className="uppercase text-[11px] tracking-wide text-gray-600 bg-white/80 border-b border-gray-200 sticky top-0 backdrop-blur-md">
                 <tr>
-                    <th>Name</th>
-                    <th>Facilities</th>
-                    <th>Price/night</th>
-                    <th>Actions</th>
+                    <th className="py-3 px-4">Name</th>
+                    <th className="py-3 px-4 max-sm:hidden">Facilities</th>
+                    <th className="py-3 px-4">Price/night</th>
+                    <th className="py-3 px-4 text-center">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {
                     rooms.map((item,index)=>(
                         <tr key={item._id}>
-                            <td className='py-3 px-4 text-gray-700 border-t border-gray-300'>
+                            <td className="py-4 px-4 font-medium">
                                 {currency} {item.roomType}
                             </td>
-                            <td className='py-3 px-4 text-gray-700 border-t border-gray-300 max-sm:hidden'>
+                            <td className="py-4 px-4 max-sm:hidden">
                                 {item.amenities.join(', ')}
                             </td>  
-                            <td className='py-3 px-4 text-gray-700 border-t border-gray-300'>
+                            <td className="py-4 px-4">
                                 {item.pricePerNight}
                             </td> 
-                            <td className='py-3 px-4 border-t border-gray-300 text-sm text-red-500 text-center'>
-                                <label> 
-                                <input onChange={()=>toggleRoomAvailability(item._id)} type='checkbox' checked={item.isAvailable}></input>
-                                <div className='w-12 h-7 bg-slate-300 rounded-full peer peer-checked:bg-blue-600 transition-colors duration-200'></div>
-                                <span className='dot absolute left-1 top-1 w-5 h-5 bg:white rounded-full transition-transforms duration-200 ease-in-out peer-checked:translate-x-5'></span>
+                            <td className="py-4 px-4">
+                                <label className="relative inline-flex items-center cursor-pointer select-none"> 
+                                <input onChange={()=>toggleRoomAvailability(item._id)} type='checkbox' checked={item.isAvailable}
+                                className="sr-only peer"
+                                ></input>
+                                {/* Track */}
+                                <div className="w-11 h-6 rounded-full bg-gray-300 peer-checked:bg-black transition-colors peer-focus:ring-2 peer-focus:ring-black/20" ></div>
+                                <span className="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform peer-checked:translate-x-5" ></span>
                                 </label>
                             </td>                                        
                         </tr>
@@ -84,6 +90,7 @@ const ListRoom = () => {
         </table>
         </div>
     </div>
+    </section>
   )
 }
 

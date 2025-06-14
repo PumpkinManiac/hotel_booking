@@ -1,179 +1,219 @@
-import React, { use, useState ,useEffect } from 'react'
-import { useParams } from 'react-router-dom'
-import {assets, facilityIcons} from '../assets/assets'
-import Rating from '../components/Rating'
-import { roomCommonData } from '../assets/assets'
-import { useAppContext } from '../conext/AppContext'
-import toast from 'react-hot-toast'
+/* RoomDetails.jsx — theme‑preserving edition */
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { useParams } from "react-router-dom";
+import { assets, facilityIcons, roomCommonData } from "../assets/assets";
+import Rating from "../components/Rating";
+import { useAppContext } from "../conext/AppContext";
+import toast from "react-hot-toast";
+
+const fadeIn = {
+  hidden: { opacity: 0, y: 24 },
+  show: i => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, delay: i * 0.08, ease: "easeOut" },
+  }),
+};
 
 const RoomDetails = () => {
-    const {rooms, axios , getToken , navigate} = useAppContext();
-    const {id} = useParams()
-    const [room ,setRoom] = useState(null)
-    const [mainImage, setMainImage] = useState(null)
-    const [checkInDate , setCheckInDate] = useState(null);
-    const [checkOutDate , setCheckOutDate] = useState(null);
-    const [guests , setGuests] = useState(1);
+  const { rooms, axios, getToken, navigate } = useAppContext();
+  const { id } = useParams();
 
-    const [isAvailable, setIsAvailable] = useState(false)
+  const [room, setRoom]       = useState(null);
+  const [mainImage, setMain]  = useState(null);
+  const [checkIn, setIn]      = useState("");
+  const [checkOut, setOut]    = useState("");
+  const [guests, setGuests]   = useState(1);
+  const [isAvail, setAvail]   = useState(false);
 
+  useEffect(() => {
+    const r = rooms.find(r => r._id === id);
+    if (r) { setRoom(r); setMain(r.images[0]); }
+  }, [rooms, id]);
 
-    const checkAvailability = async ()=>{
-        try {
-            //Check is check-In date is greater thann Check_out Date
-            if(checkInDate >= checkOutDate){
-                toast.error('Check-In date should be less than Check-Out Date')
-                return;
-            }
-            const {data} = await axios.post("/api/bookings/check-availability" , {room :id, checkInDate,checkOutDate})
-            if (data.success){
-                if(data.isAvailable){
-                setIsAvailable(true);
-                toast.success("Room is available")
-            }else{
-                setIsAvailable(false)
-                toast.error("Room is not available")
-            }}
-            else{
-                toast.error(data.message)
-            }
-        } catch (error) {
-             toast.error(error.message)
-        }
-    }
+  /* -------- availability & booking ------------- */
+  const checkAvailability = async () => {
+    if (!checkIn || !checkOut) return;
+    if (checkIn >= checkOut) return toast.error("Check‑in must be before check‑out");
 
-    //onSubmitHandler function to check availability & book the roomn
+    try {
+      const { data } = await axios.post("/api/bookings/check-availability",
+        { room: id, checkInDate: checkIn, checkOutDate: checkOut });
+      if (!data.success) return toast.error(data.message);
 
-    const onSubmitHandler = async (e) =>{
-        try {
-            e.preventDefault();
-            if(!isAvailable){
-            return checkAvailability();
-            }else{
-                const {data} = await axios.post("/api/bookings/book",{room:id ,checkInDate,checkOutDate,guests,paymentMethod: "pay at hotel"},{headers : {Authorization : `Bearer ${await getToken()}`}})
-                if(data.success){
-                    toast.success(data.message)
-                    navigate("/my-bookings")
-                    scrollTo(0,0)
-                }else{
-                    toast.error(data.message)
-                }
+      setAvail(data.isAvailable);
+      toast[data.isAvailable ? "success" : "error"](
+        `Room is ${data.isAvailable ? "" : "not "}available`
+      );
+    } catch (e) { toast.error(e.message); }
+  };
 
-            }
-        } catch (error) {
-            toast.error(data.message)
-        }
-    }
+  const handleSubmit = async e => {
+    e.preventDefault();
+    if (!isAvail) return checkAvailability();
 
-    useEffect(() => {
-        const room = rooms.find((room)=>room._id == id)
-        room && setRoom(room)
-        room && setMainImage(room.images[0])
-    },[rooms])
+    try {
+      const { data } = await axios.post("/api/bookings/book",
+        { room: id, checkInDate: checkIn, checkOutDate: checkOut, guests,
+          paymentMethod: "pay at hotel" },
+        { headers: { Authorization: `Bearer ${await getToken()}` } });
+      data.success
+        ? (toast.success(data.message), navigate("/my-bookings"), scrollTo(0, 0))
+        : toast.error(data.message);
+    } catch (e) { toast.error(e.message); }
+  };
 
-  return room && (
-    <div className='py-28 md:py-35 px-4 md:px-16 lg:px-24 xl:px-32'>
-        {/* Room Details */}
-        <div className='flex flex-col md:flex-row items-start md:items-center gap-2'>
-            <h1 className='text-3xl ms:text-4xl font-playfair'>
-            {room.hotel.name} <span className='font-inter text-sm'>({room.roomType})</span></h1>
-            <p className='text-xs font-inter py-1.5 px-3 text-white bg-orange-500'>20% Off</p>
-        </div>
+  if (!room) return null;
 
-    {/* Room Raiting */}
-    <div className='flex-item-center gap-1 mt-2'>
-        <Rating />
-        <p className='ml-2'> 200+ reviews</p>
-    </div>
-    {/* Room address */}
-    <div className='flex items-center gap-1 text-gray-500 mt-2'>
-        <img src={assets.locationIcon} alt='location-icon'></img>
+  return (
+    <div className="px-4 sm:px-8 md:px-16 lg:px-24 xl:px-32 py-28
+                    bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+      {/* heading */}
+      <motion.div variants={fadeIn} initial="hidden" animate="show"
+        className="flex flex-col md:flex-row items-start md:items-center gap-3">
+        <h1 className="text-3xl sm:text-4xl font-playfair">
+          {room.hotel.name}
+          <span className="font-inter text-base text-gray-400">
+            &nbsp;({room.roomType})
+          </span>
+        </h1>
+        <span className="text-xs font-medium px-3 py-1.5 rounded bg-orange-500">20% Off</span>
+      </motion.div>
+
+      {/* rating & address */}
+      <motion.div variants={fadeIn} custom={1} initial="hidden" animate="show"
+        className="flex items-center gap-2 mt-2 text-gray-300">
+        <Rating /><span className="text-sm">200+ reviews</span>
+      </motion.div>
+      <motion.div variants={fadeIn} custom={2} initial="hidden" animate="show"
+        className="flex items-center gap-2 mt-2 text-gray-400">
+        <img src={assets.locationIcon} alt="" className="w-4 h-4 invert" />
         <span>{room.hotel.address}</span>
-    </div>
-    {/*Room Images*/}
-    <div className='flex flex-col lg:flex-row mt-6 gap-6'>
-        <div className='lg:w-1/2 w-full'>
-            <img src={mainImage} alt='room-image' className='w-full rounded-xl shadow-lg object-cover'></img>
+      </motion.div>
+
+      {/* gallery */}
+      <motion.div variants={fadeIn} custom={3} initial="hidden" animate="show"
+        className="flex flex-col lg:flex-row gap-6 mt-8">
+        <motion.img key={mainImage} src={mainImage} alt="main"
+          className="w-full lg:w-1/2 h-72 sm:h-96 object-cover rounded-xl shadow-lg"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: .5 }} />
+
+        <div className="grid grid-cols-2 gap-4 w-full lg:w-1/2">
+          {room.images.map((img, i) => (
+            <motion.img key={i} src={img} alt=""
+              whileHover={{ scale: 1.05 }}
+              onClick={() => setMain(img)}
+              className={`h-32 sm:h-40 w-full object-cover rounded-lg cursor-pointer
+                          ${mainImage === img ? "outline-2 outline-blue-400" : ""}`} />
+          ))}
         </div>
-        <div className='grid grid-cols-2 gap-4 lg:w-1/2 w-full'>
-            {room ?.images.length > 1 && room.images.map((image,index)=>(
-                <img onClick={()=>setMainImage(image)}
-                key ={index} src={image} alt='room-image'
-                className={`w-full rounded-xl shadow-md object-cover cursor-pointed ${mainImage == image && 'outline-3 outline-orange-500'}`}></img>
-            )) }
-        </div>
-    </div>
-    {/* Room Highlights */}
-    <div className='flex flex-col md:fkex-row md:justify-between mt-10'>
-    <div className='flex flex-col'>
-        <h1> Experience Luxury Like Never Before</h1>
-        <div className='flex flex-wrap items-center mt-3 mb-6 gap-4'>
-            {room.amenities.map((item,index)=>(
-                <div key={index} className='flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100'>
-                    <img src={facilityIcons[item]} className='w-5 g-5'></img>
-                    <p className='text-xs'>{item}</p>
-                </div>
+      </motion.div>
+
+      {/* highlights & price */}
+      <motion.div variants={fadeIn} custom={4} initial="hidden" animate="show"
+        className="flex flex-col md:flex-row md:justify-between mt-10 gap-6">
+        <div className="flex-1">
+          <h2 className="text-xl font-semibold mb-4">Experience luxury like never before</h2>
+          <div className="flex flex-wrap gap-3">
+            {room.amenities.map((a, i) => (
+              <div key={i}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg
+                           bg-gray-700/50 backdrop-blur-md shadow-sm">
+                <img src={facilityIcons[a]} alt="" className="w-5 h-5 invert" />
+                <span className="text-xs capitalize">{a}</span>
+              </div>
             ))}
+          </div>
         </div>
-    </div>
-     {/* Room Price */}
-            <p className='text-2xl font-medium'>$ {room.pricePerNight} /night</p>
-    </div>
+        <p className="text-3xl font-playfair text-blue-400 mt-4 md:mt-0">
+          ₹{room.pricePerNight}
+          <span className="text-sm font-inter text-gray-400"> / night</span>
+        </p>
+      </motion.div>
 
-    {/* CheckIn CheckOut Form */}
-    <form onSubmit={onSubmitHandler} className='flex flex-col md:flex-row items-start md:items-center justify-between bg-white shadow-[0px_0px_20px_rgba(0,0,0,0.15)] p-6 rounded-xl mx-auto mt-16 max-w-6xl'>
-            <div className='flex flex-col flex-wrap md:flex-row items-start md:items-center gap-4 md:gap-10 text-gray-500'>
+      {/* booking form */}
+      <motion.form variants={fadeIn} custom={5} initial="hidden" animate="show"
+        onSubmit={handleSubmit}
+        className="bg-gray-800/80 backdrop-blur-md mt-16 shadow-lg rounded-xl p-6
+                   flex flex-col md:flex-row gap-6 md:gap-10 max-w-6xl mx-auto">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-6 text-sm text-gray-300">
 
-                <div className='flex flex-col'>
-                    <label htmlFor='checkInDate' className='font-medium'>Check-In</label>
-                    <input onChange={(e)=>setCheckInDate(e.target.value)} min={new Date().toISOString().split("T")[0]} type='date'id='checkInDate' placeholder='Check-In' className='w-full rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none required' required></input>
-                </div>
-                <div className='w-px h-15 bg-gray-300/70 max-md:hidden'></div> 
-                <div className='flex flex-col'>
-                    <label htmlFor='checkOutDate' className='font-medium'>Check-Out</label>
-                    <input onChange={(e)=>setCheckOutDate(e.target.value)} min={checkInDate} disabled={!checkInDate} type='date'id='checkOutDate' placeholder='Check-Out' className='w-full rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none ' required></input>
-                </div>   
-                <div className='w-px h-15 bg-gray-300/70 max-md:hidden'></div>    
-                <div className='flex flex-col'>
-                    <label htmlFor='guests' className='font-medium'>Guests</label>
-                    <input onChange={(e)=>setGuests(e.target.value)} value={guests} type='number'id='guests' placeholder='1' className='max-w-20 rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none' required></input>
-                </div>         
-            </div>
-            <button type='submit' className='bg-primary hover:bg-primary-dull active:scale-95 transition-all text-white rounded-md max max-md:w-full max-md:mt-6 md:px-25 py-3 md:py-4 text-base cursor-pointer'>
-                {isAvailable ? "Book Now" : "Check Availability"}
-            </button>
-    </form>
-    {/* Common Specification */}
-    <div className='mt-25 space-y-4'>
-        {roomCommonData.map((spec,index)=>(
-            <div key={index} className='flex items-start gap-2'>
-                <img src={spec.icon} className='w-6.5'></img>
-                <div>
-                    <p className='text-base'>{spec.title}</p>
-                    <p className='text-gray-500'>{spec.description}</p>
-                </div>
-            </div>
-        ))}
-    </div>
-    <div className='max-w-3xl border-y border-gray-300 my-15 py-10 text-gray-500'>
-        <p>sdrfcgvbhjkefgwughwihwighehgowhghoghvobwvoboebvowbvovo hevhwenwugwheg0wg0bvhe9gfq0yeytgugbowgihpwhoghbwowooononbvowiohgwhvnwiurgehioghwohnihgwncghomigkrlchcnog</p>
-    </div>
-    {/* Hosted By */}
-    <div className='flex flex-col items-start gap-4'>
-        <div className='flex gap-4'>
-            <img src={room.hotel.owner.image} className='wh-14 w-14 md:h-18 md:w-18 rounded-full'></img>
+          <div className="flex flex-col">
+            <label htmlFor="in" className="font-medium">Check‑in</label>
+            <input id="in" type="date" value={checkIn}
+              min={new Date().toISOString().split('T')[0]}
+              onChange={e => setIn(e.target.value)}
+              className="mt-1.5 px-3 py-2 border border-gray-600 rounded
+                         bg-gray-900 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+          </div>
+
+          <div className="flex flex-col">
+            <label htmlFor="out" className="font-medium">Check‑out</label>
+            <input id="out" type="date" value={checkOut} disabled={!checkIn}
+              min={checkIn} onChange={e => setOut(e.target.value)}
+              className="mt-1.5 px-3 py-2 border border-gray-600 rounded
+                         bg-gray-900 text-gray-100 disabled:opacity-50
+                         focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+          </div>
+
+          <div className="flex flex-col">
+            <label htmlFor="guests" className="font-medium">Guests</label>
+            <input id="guests" type="number" min={1} max={6} value={guests}
+              onChange={e => setGuests(e.target.value)}
+              className="mt-1.5 w-24 px-3 py-2 border border-gray-600 rounded
+                         bg-gray-900 text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+          </div>
+        </div>
+
+        <button type="submit"
+          className="w-full md:w-auto px-8 py-3 rounded-md bg-blue-500 hover:bg-blue-600
+                     active:scale-95 transition text-white font-medium">
+          {isAvail ? "Book Now" : "Check Availability"}
+        </button>
+      </motion.form>
+
+      {/* specifications */}
+      <motion.div variants={fadeIn} custom={6} initial="hidden" animate="show"
+        className="space-y-6 mt-24">
+        {roomCommonData.map((s, i) => (
+          <div key={i} className="flex items-start gap-3">
+            <img src={s.icon} alt="" className="w-7 h-7 invert" />
             <div>
-                <p className='text-lg md:text-xl'>Hosted by {room.hotel.name}</p>
-                <div className='flex items-center mt-1'>
-                    <Rating />
-                    <p className='ml-2'>200+ reviews</p>
-                </div>
+              <h3 className="text-lg font-medium">{s.title}</h3>
+              <p className="text-gray-400">{s.description}</p>
             </div>
-        </div>
-        <button className='px-6 py-2.5 mt-4 rounded text-white bg-primary hover:bg-primary-dull transition-all cursor-pointer'>Contact Now</button>
-    </div>
-    </div>
-  )
-}
+          </div>
+        ))}
+      </motion.div>
 
-export default RoomDetails
+      {/* description */}
+      <motion.div variants={fadeIn} custom={7} initial="hidden" animate="show"
+        className="max-w-3xl border-y border-gray-700 py-10 my-16 text-gray-400 leading-relaxed">
+        <p>…long room description…</p>
+      </motion.div>
+
+      {/* host */}
+      <motion.div variants={fadeIn} custom={8} initial="hidden" animate="show"
+        className="flex flex-col gap-6">
+        <div className="flex gap-4 items-center">
+          <img src={room.hotel.owner.image} alt=""
+            className="w-14 h-14 md:w-18 md:h-18 rounded-full object-cover"/>
+          <div>
+            <p className="text-lg md:text-xl font-medium">Hosted by {room.hotel.name}</p>
+            <div className="flex items-center gap-1 text-gray-300 mt-1">
+              <Rating /><span className="ml-2 text-sm">200+ reviews</span>
+            </div>
+          </div>
+        </div>
+        <button
+          className="px-8 py-3 rounded-md bg-blue-500 hover:bg-blue-600
+                     active:scale-95 transition text-white w-max">
+          Contact Host
+        </button>
+      </motion.div>
+    </div>
+  );
+};
+
+export default RoomDetails;

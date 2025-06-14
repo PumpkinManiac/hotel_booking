@@ -34,25 +34,26 @@ const Dashboard = () => {
   }, [user]);
 
   return (
-    <div>
-      <Title align='left' font='outfit' title='Dashboard' subtitle='' />
+    <section className="min-h-screen bg-gradient-to-br from-gray-100 to-white py-10 px-4 md:px-10 lg:px-16">
+    <div className="max-w-7xl mx-auto">
+      <Title align='left' font='outfit' title='Dashboard' subtitle="Overview of your bookings and earnings" />
 
-      <div className='flex gap-4 my-8'>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 my-10">
         {/* Total Bookings */}
-        <div className='bg-primary/3 border border-primary/10 rounded flex p-4 pr-8 items-center gap-4'>
+        <div className="flex items-center gap-4 p-6 bg-white/70 border border-gray-200 backdrop-blur-md rounded-3xl shadow-xl hover:shadow-2xl transition-shadow">
           <img src={assets.totalBookingIcon} alt='Bookings Icon' />
           <div>
-            <p>Total Bookings</p>
-            <p>{dashboardData.totalBookings}</p>
+            <p className="text-gray-500 text-sm">Total Bookings</p>
+            <p className="text-xl font-semibold text-gray-800">{dashboardData.totalBookings}</p>
           </div>
         </div>
 
         {/* Total Revenue */}
-        <div className='bg-primary/3 border border-primary/10 rounded flex p-4 pr-8 items-center gap-4'>
-          <img src={assets.totalRevenueIcon} alt='Revenue Icon' />
+        <div className="flex items-center gap-4 p-6 bg-white/70 border border-gray-200 backdrop-blur-md rounded-3xl shadow-xl hover:shadow-2xl transition-shadow">
+          <img src={assets.totalRevenueIcon} alt='Revenue Icon' className="w-12 h-12" />
           <div>
-            <p>Total Revenue</p>
-            <p>
+            <p className="text-gray-500 text-sm">Total Revenue</p>
+            <p className="text-xl font-semibold text-gray-800">
               {currency} {dashboardData.totalRevenue}
             </p>
           </div>
@@ -60,35 +61,35 @@ const Dashboard = () => {
       </div>
 
       {/* Recent Bookings */}
-      <h2 className='text-lg font-semibold mb-2'>Recent Bookings</h2>
-      <div className='w-full max-w-3xl text-left border border-gray-300 rounded-lg max-h-80 overflow-y-scroll'>
-        <table className='w-full text-sm'>
-          <thead className='bg-gray-50'>
+      <h2 className="text-xl font-semibold text-gray-700 mb-4">Recent Bookings</h2>
+      <div className="w-full max-h-[420px] overflow-auto border border-gray-200 rounded-2xl shadow-md bg-white/80 backdrop-blur-sm">
+        <table className="w-full min-w-[640px] text-sm">
+          <thead className="sticky top-0 bg-white/90 text-gray-500 text-xs uppercase tracking-wide">
             <tr>
-              <th className='text-left px-4 py-2'>User Name</th>
-              <th className='text-left px-4 py-2'>Room Name</th>
-              <th className='text-left px-4 py-2'>Total Amount</th>
-              <th className='text-left px-4 py-2'>Payment Status</th>
+              <th className='text-left px-5 py-3'>User Name</th>
+              <th className='text-left px-5 py-3'>Room Name</th>
+              <th className='text-left px-5 py-3'>Total Amount</th>
+              <th className='text-left px-5 py-3'>Payment Status</th>
             </tr>
           </thead>
           <tbody>
             {dashboardData.bookings.map((item, index) => (
               <tr key={index} className='border-t'>
-                <td className='px-4 py-2'>{item.user.username}</td>
-                <td className='px-4 py-2'>{item.room.roomType}</td>
-                <td className='px-4 py-2'>
+                <td className='px-5 py-3'>{item.user.username}</td>
+                <td className='px-5 py-3'>{item.room.roomType}</td>
+                <td className='px-5 py-3'>
                   {currency} {item.totalPrice}
                 </td>
-                <td className='px-4 py-2'>
-                  <button
-                    className={`py-1 px-3 text-xs rounded-full ${
-                      item.isPaid
-                        ? 'bg-green-200 text-green-600'
-                        : 'bg-amber-200 text-yellow-600'
-                    }`}
-                  >
-                    {item.isPaid ? 'Completed' : 'Pending'}
-                  </button>
+                <td className='px-5 py-3'>
+                      <span
+                        className={`inline-block py-1 px-3 text-xs font-medium rounded-full ${
+                          item.isPaid
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-yellow-100 text-yellow-700'
+                        }`}
+                      >
+                        {item.isPaid ? 'Completed' : 'Pending'}
+                      </span>
                 </td>
               </tr>
             ))}
@@ -96,6 +97,7 @@ const Dashboard = () => {
         </table>
       </div>
     </div>
+    </section>
   );
 };
 

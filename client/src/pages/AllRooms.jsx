@@ -1,178 +1,223 @@
-import React, { useMemo, useState } from 'react';
-import { assets, facilityIcons} from '../assets/assets';
-import Rating from '../components/Rating';
-import { useAppContext } from '../conext/AppContext';
-import { useSearchParams } from 'react-router-dom';
+import React, { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { assets, facilityIcons } from "../assets/assets";
+import Rating from "../components/Rating";
+import { useAppContext } from "../conext/AppContext";
+import { useSearchParams } from "react-router-dom";
 
+/** ---------------------------------------------
+ *  Small UI Helpers
+ *  -------------------------------------------*/
 const CheckBox = ({ label, selected = false, onChange = () => {} }) => (
-  <label className="flex gap-3 items-center cursor-pointer mt-2 text-sm">
+  <label className="flex gap-3 items-center cursor-pointer mt-2 text-sm select-none">
     <input
       type="checkbox"
       checked={selected}
       onChange={(e) => onChange(e.target.checked)}
-      className="accent-indigo-600"
+      className="accent-blue-600 h-4 w-4 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
     />
-    <span className="text-gray-700 select-none">{label}</span>
+    <span>{label}</span>
   </label>
 );
 
 const RadioButton = ({ label, selected = false, onChange = () => {} }) => (
-  <label className="flex gap-3 items-center cursor-pointer mt-2 text-sm">
+  <label className="flex gap-3 items-center cursor-pointer mt-2 text-sm select-none">
     <input
       type="radio"
       name="sortOption"
       checked={selected}
       onChange={() => onChange(label)}
-      className="accent-indigo-600"
+      className="accent-blue-600 h-4 w-4 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500"
     />
-    <span className="text-gray-700 select-none">{label}</span>
+    <span>{label}</span>
   </label>
 );
 
+/** ---------------------------------------------
+ *  Main Component
+ *  -------------------------------------------*/
 const AllRooms = () => {
-
   const [openFilters, setOpenFilters] = useState(false);
-  //const [searchParams,setSearchParams] = useState()
-  const [searchParams] = useSearchParams();
-  const {rooms,navigate,currency} = useAppContext();
-  const [selectedFilters , setSelectedFilters] = useState({
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { rooms, navigate } = useAppContext();
+
+  const [selectedFilters, setSelectedFilters] = useState({
     roomTypes: [],
-    priceRange: '',
- });
-  const [selectedSort , setSelectedSort] = useState('');
+    priceRange: [],
+  });
+  const [selectedSort, setSelectedSort] = useState("");
 
-  const roomTypes = ['Single Bed', 'Double Bed', 'Luxury Room', 'Family Suite'];
-  const priceRange = ['0 to 500', '500 to 1000', '1000 to 2000', '2000 to 3000'];
-  const sortOptions = ['Price Low to High', 'Price High to Low', 'Newest First'];
+  const roomTypes = ["Single Bed", "Double Bed", "Luxury Room", "Family Suite"];
+  const priceRanges = ["0 to 500", "500 to 1000", "1000 to 2000", "2000 to 3000"];
+  const sortOptions = ["Price Low to High", "Price High to Low", "Newest First"];
 
-// handle  changes for filter and sorting
+  const handleFilterChange = (checked, value, type) => {
+    setSelectedFilters((prev) => {
+      const update = { ...prev };
+      if (checked) update[type] = [...update[type], value];
+      else update[type] = update[type].filter((v) => v !== value);
+      return update;
+    });
+  };
 
- const handleFilterChange = (checked ,value, type) => {
+  const handleSortChange = (sortOption) => setSelectedSort(sortOption);
 
-  setSelectedFilters((prevFilter)=>{
-    const updatedFilter = {...prevFilter};
-    if (checked) {
-      updatedFilter[type].push(value);
-    } else {
-      updatedFilter[type] = updatedFilter[type].filter((item) => item !== value);
+  const matchesRoomType = (room) =>
+    selectedFilters.roomTypes.length === 0 || selectedFilters.roomTypes.includes(room.roomType);
+
+  const matchesPriceRange = (room) => {
+    if (selectedFilters.priceRange.length === 0) return true;
+    return selectedFilters.priceRange.some((range) => {
+      const [min, max] = range.split(" to ").map(Number);
+      return room.pricePerNight >= min && room.pricePerNight <= max;
+    });
+  };
+
+  const sortRooms = (a, b) => {
+    switch (selectedSort) {
+      case "Price Low to High":
+        return a.pricePerNight - b.pricePerNight;
+      case "Price High to Low":
+        return b.pricePerNight - a.pricePerNight;
+      case "Newest First":
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      default:
+        return 0;
     }
-    return updatedFilter;
-  })
- }
+  };
 
- const handleSortChange = (sortOption) => {
-  setSelectedSort(sortOption);
- }
- //Function to check if a room matches the selected room types
- const matchesRoomType = (room)=>{
-  return selectedFilters.roomTypes.length == 0 || selectedFilters.roomTypes.includes(room.roomType);
- }
- //Function to check if a room matches the selected price range
- const matchesPriceRange = (room) => {
-  return selectedFilters.priceRange.length === 0 || selectedFilters.some(range =>{
-    const [min , max] = range.split(' to ').map(Number);
-    return room.pricePerNight >= min && room.pricePerNight <= max;
-  })
- }
+  const filterDestination = (room) => {
+    const destination = searchParams.get("destination");
+    if (!destination) return true;
+    return room.hotel.city.toLowerCase().includes(destination.toLowerCase());
+  };
 
- //Function to sort rooms based on the selected sort option
- const sortRooms = (a,b) => {
-  if (selectedSort === 'Price Low to High') {
-    a.pricePerNight - b.pricePerNight;
-  }
-  if (selectedSort === 'Price High to Low') {
-    b.pricePerNight - a.pricePerNight;
-  }
-  if(selectedSort === 'Newest First') {
-    return new Date(b.createdAt) - new Date(a.createdAt);
-  }
-  return 0; // Default case, no sorting
- }
+  const filteredRooms = useMemo(() => {
+    return (
+      rooms
+        ?.filter((room) => matchesRoomType(room) && matchesPriceRange(room) && filterDestination(room))
+        .sort(sortRooms) || []
+    );
+  }, [rooms, selectedFilters, selectedSort, searchParams]);
 
- //Filter Destination
- const filterDestination = (room) => {
-  const destination  = searchParams.get('destination');
-  if (!destination) return true; // If no destination is set, show all rooms
-  return room.hotel.city.toLowerCase().includes(destination.toLowerCase());
- }
+  const clearFilters = () => {
+    setSelectedFilters({ roomTypes: [], priceRange: [] });
+    setSelectedSort("");
+    setSearchParams({});
+  };
 
- //Filter and sort rooms based on the selected filters and sort options
- const filteredRooms = useMemo(() => {
-  return rooms.filter(room => matchesRoomType(room) &&
-    matchesPriceRange(room) && filterDestination(room))
-    .sort(sortRooms);
- },[rooms ,selectedFilters, selectedSort, searchParams]);
-
- //Clear all filter 
-
- const clearFilters = () => {
-  setSelectedFilters({
-      roomTypes: [],
-      priceRange: [],
-  })
-  setSelectedSort('')
-  setSearchParams({});
- }
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 32 },
+    show: (i) => ({
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, delay: i * 0.08, ease: "easeOut" },
+    }),
+  };
 
   return (
-    <div className="flex flex-col-reverse lg:flex-row justify-between gap-10 pt-28 px-4 md:px-16 lg:px-24 xl:px-32">
-      {/* Filter Sidebar */}
-      <div className="bg-white w-full lg:w-80 border border-gray-200 rounded-lg p-4 max-lg:mb-10 shadow-sm">
-        <div className="flex items-center justify-between pb-2 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-800">Filters</h2>
-          <button
-            onClick={() => setOpenFilters(!openFilters)}
-            className="text-sm text-indigo-600 lg:hidden"
-          >
-            {openFilters ? 'Hide' : 'Show'}
-          </button>
-          <button className="hidden lg:block text-sm text-red-500 hover:underline">Clear</button>
-        </div>
-
-        <div className={`${openFilters ? 'block' : 'hidden'} lg:block mt-4`}>
-          {/* Room Types */}
-          <div className="mb-6">
-            <p className="font-medium text-gray-700 mb-2">Popular Filters</p>
-            {roomTypes.map((room, index) => (
-              <CheckBox key={index} label={room} selected={selectedFilters.roomTypes.includes(room)} onChange={checked => handleFilterChange(checked,room,'roomType') } />
-            ))}
+    <div className="w-full max-w-7xl mx-auto min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-100 flex flex-col-reverse lg:flex-row gap-12 px-4 sm:px-6 lg:px-8 py-24">
+      {/* FILTER SIDEBAR */}
+      <motion.aside
+        initial={{ x: "100%" }}
+        animate={{ x: 0 }}
+        transition={{ type: "spring", stiffness: 120, damping: 20 }}
+        className="bg-slate-800/70 backdrop-blur-xl w-full lg:w-72 rounded-3xl border border-slate-700 p-6 shadow-2xl lg:sticky top-24 z-10 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700/80 hover:scrollbar-thumb-slate-600"
+      >
+        <header className="flex items-center justify-between pb-3 border-b border-slate-700">
+          <h2 className="text-lg font-semibold">Filters</h2>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setOpenFilters(!openFilters)}
+              className="text-sm font-medium text-blue-400 transition hover:text-blue-300 lg:hidden"
+            >
+              {openFilters ? "Hide" : "Show"}
+            </button>
+            <button
+              onClick={clearFilters}
+              className="hidden lg:inline-block text-sm font-medium text-red-400 hover:text-red-300"
+            >
+              Clear
+            </button>
           </div>
+        </header>
 
-          {/* Price Range */}
-          <div className="mb-6">
-            <p className="font-medium text-gray-700 mb-2">Price Range</p>
-            {priceRange.map((range, index) => (
-              <CheckBox key={index} label={`$${currency} ${range}`} selected={selectedFilters.priceRange.includes(range)} onChange={checked => handleFilterChange(checked,range,'priceRange') }/>
-            ))}
-          </div>
+        <AnimatePresence initial={false}>
+          {(openFilters || window.innerWidth >= 1024) && (
+            <motion.div
+              key="filters"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="lg:block mt-4 pr-1"
+            >
+              <div className="mb-6">
+                <p className="font-medium mb-2">Room Types</p>
+                {roomTypes.map((room, index) => (
+                  <CheckBox
+                    key={index}
+                    label={room}
+                    selected={selectedFilters.roomTypes.includes(room)}
+                    onChange={(checked) => handleFilterChange(checked, room, "roomTypes")}
+                  />
+                ))}
+              </div>
 
-          {/* Sort Options */}
-          <div>
-            <p className="font-medium text-gray-700 mb-2">Sort By</p>
-            {sortOptions.map((option, index) => (
-              <RadioButton key={index} label={option} selected = {selectedSort == option} onChange={() => handleSortChange(option)} />
-            ))}
-          </div>
-        </div>
-      </div>
+              <div className="mb-6">
+                <p className="font-medium mb-2">Price Range</p>
+                {priceRanges.map((range, index) => (
+                  <CheckBox
+                    key={index}
+                    label={`₹${range}`}
+                    selected={selectedFilters.priceRange.includes(range)}
+                    onChange={(checked) => handleFilterChange(checked, range, "priceRange")}
+                  />
+                ))}
+              </div>
 
-      {/* Main Content */}
-      <div className="w-full flex flex-col">
+              <div>
+                <p className="font-medium mb-2">Sort By</p>
+                {sortOptions.map((option, index) => (
+                  <RadioButton
+                    key={index}
+                    label={option}
+                    selected={selectedSort === option}
+                    onChange={() => handleSortChange(option)}
+                  />
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.aside>
+
+      {/* MAIN CONTENT */}
+      <section className="w-full flex flex-col scroll-mt-28">
         <header className="mb-10">
-          <h1 className="font-playfair text-4xl md:text-[40px] text-gray-800">
-            Hotel Rooms
-          </h1>
-          <p className="mt-2 text-gray-500 text-sm md:text-base max-w-2xl">
+          <h1 className="font-playfair text-4xl md:text-5xl leading-tight">Hotel Rooms</h1>
+          <p className="mt-2 text-slate-300 max-w-2xl">
             Take advantage of our limited offers and special packages to enhance your stay and create unforgettable memories.
           </p>
         </header>
 
-        {filteredRooms.map((room) => (
-          <div
+        {filteredRooms.length === 0 && (
+          <p className="text-center text-slate-400">No rooms match your current filters.</p>
+        )}
+
+        {filteredRooms.map((room, index) => (
+          <motion.div
+            custom={index}
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-100px" }}
             key={room._id}
-            className="flex flex-col md:flex-row items-start gap-6 py-8 border-b border-gray-200 last:border-0"
+            className="group flex flex-col md:flex-row items-start gap-6 py-10 border-b border-slate-700 last:border-0 transition-all duration-300 ease-in-out hover:bg-slate-800/40 rounded-2xl px-4"
           >
-            <img
+            <motion.img
+              whileHover={{ scale: 1.04 }}
+              transition={{ duration: 0.3 }}
               src={room.images[0]}
               alt="hotel"
               title="View room details"
@@ -180,49 +225,55 @@ const AllRooms = () => {
                 navigate(`/rooms/${room._id}`);
                 scrollTo(0, 0);
               }}
-              className="w-full md:w-1/2 h-60 object-cover rounded-xl shadow-md cursor-pointer transition-transform hover:scale-[1.01]"
+              className="w-full md:w-[48%] h-56 sm:h-64 object-cover rounded-2xl shadow-lg cursor-pointer"
             />
-            <div className="md:w-1/2 flex flex-col gap-2">
-              <p className="text-sm text-gray-500">{room.hotel.city}</p>
+
+            <div className="md:w-1/2 flex flex-col gap-3">
+              <p className="text-xs uppercase tracking-wide text-slate-400">{room.hotel.city}</p>
               <h2
                 onClick={() => {
                   navigate(`/rooms/${room._id}`);
                   scrollTo(0, 0);
                 }}
-                className="text-2xl font-playfair font-semibold text-gray-800 cursor-pointer hover:text-indigo-600 transition-colors"
+                className="text-2xl font-playfair font-semibold cursor-pointer group-hover:text-blue-400 transition-colors"
               >
                 {room.hotel.name}
               </h2>
-              <div className="flex items-center text-sm text-gray-600">
+
+              <div className="flex items-center text-sm text-slate-300 mt-1">
                 <Rating />
-                <span className="ml-2">200+ reviews</span>
+                <span className="ml-2 text-xs sm:text-sm text-slate-400">200+ reviews</span>
               </div>
-              <div className="flex items-center gap-1 text-gray-500 mt-2 text-sm">
-                <img src={assets.locationIcon} alt="location-icon" className="w-4 h-4" />
+
+              <div className="flex items-center gap-1 mt-2 text-sm text-slate-400">
+                <img
+                  src={assets.locationIcon}
+                  alt="location-icon"
+                  className="w-4 h-4 invert"
+                />
                 <span>{room.hotel.address}</span>
               </div>
 
-              {/* Amenities */}
-              <div className="flex flex-wrap gap-3 mt-4 mb-6">
-                {room.amenities.map((item, index) => (
+              <div className="flex flex-wrap gap-3 mt-4 mb-6 max-h-24 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700/60 hover:scrollbar-thumb-slate-600">
+                {room.amenities.map((item, idx) => (
                   <div
-                    key={index}
-                    className="flex items-center gap-2 px-3 py-2 rounded-md bg-indigo-50"
+                    key={idx}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-700/60 backdrop-blur-md shadow-sm hover:scale-105 transition-transform duration-200"
                   >
-                    <img src={facilityIcons[item]} alt={item} className="w-5 h-5" />
-                    <p className="text-xs text-gray-700 capitalize">{item}</p>
+                    <img src={facilityIcons[item]} alt={item} className="w-5 h-5 invert" />
+                    <p className="text-xs capitalize text-slate-300 whitespace-nowrap">{item}</p>
                   </div>
                 ))}
               </div>
 
-              {/* Price */}
-              <p className="text-lg font-semibold text-indigo-700">
-                ${room.pricePerNight} <span className="text-sm text-gray-500">/ night</span>
+              <p className="text-lg font-semibold text-blue-400">
+                ₹{room.pricePerNight}
+                <span className="text-sm text-slate-400"> / night</span>
               </p>
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </section>
     </div>
   );
 };

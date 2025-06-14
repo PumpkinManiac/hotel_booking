@@ -92,34 +92,35 @@ const AddRoom = () => {
   };
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-white py-12 px-4 md:px-16 lg:px-24 xl:px-32">
       <form
         onSubmit={onsubmitHandler}
-        className="flex flex-col items-center justify-center max-w-3xl mx-auto p-8 bg-white rounded-lg shadow-md"
+        className="backdrop-blur-md bg-white/70 shadow-xl border border-gray-200 rounded-3xl px-6 py-10 max-w-4xl mx-auto w-full"
       >
         {/* Title */}
         <Title
           align="left"
           font="outfit"
-          title="Add Room"
+          title="Add a new Room"
           subtitle="Fill out the details below"
         />
 
         {/* Image Upload */}
-        <p className="mb-2 mt-4 font-medium text-gray-700">Images</p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full mb-4">
+        <p className="mb-2 mt-6 text-sm font-semibold text-gray-700">Room Images</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full mb-6">
           {Object.keys(images).map((key) => (
-            <label htmlFor={`roomImage${key}`} key={key} className="cursor-pointer">
+            <label htmlFor={`roomImage${key}`} key={key} 
+             className="cursor-pointer relative group">
               <img
                 src={
                   images[key] ? URL.createObjectURL(images[key]) : assets.uploadArea
                 }
                 alt={`Room preview ${key}`}
-                className="w-full h-32 object-cover border rounded"
+                className="w-full h-32 object-cover border-2 border-gray-200 rounded-xl shadow-sm group-hover:brightness-95 transition duration-300"
               />
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*" //accept iamge of any type {png,jpg,jpeg}
                 id={`roomImage${key}`}
                 hidden
                 onChange={(e) =>
@@ -128,17 +129,18 @@ const AddRoom = () => {
               />
             </label>
           ))}
-        </div>
+        </div>               
 
         {/* Room Type */}
-        <div className="w-full mb-4">
-          <p className="mb-1">Room Type</p>
+        <div className="mt-6">
+          <label className="block mb-1 font-medium text-sm text-gray-700">Room Type
+          </label>
           <select
             value={inputs.roomType}
             onChange={(e) =>
               setInputs({ ...inputs, roomType: e.target.value })
             }
-            className="border border-gray-300 rounded p-2 w-full"
+            className="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 transition"
           >
             <option value="">Select room type</option>
             <option value="Single Bed">Single Bed</option>
@@ -149,14 +151,14 @@ const AddRoom = () => {
         </div>
 
         {/* Price */}
-        <div className="w-full mb-4">
-          <p className="mb-1">
-            Price <span className="text-sm text-gray-500">/ night</span>
-          </p>
+        <div className="w-full mb-5">
+          <label className="block mb-1 font-medium text-sm text-gray-700">
+            Price /night
+          </label>
           <input
             type="number"
             placeholder="0"
-            className="border border-gray-300 rounded p-2 w-full"
+            className="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 transition"
             value={inputs.pricePerNight}
             onChange={(e) =>
               setInputs({ ...inputs, pricePerNight: e.target.value })
@@ -165,10 +167,11 @@ const AddRoom = () => {
         </div>
 
         {/* Amenities */}
-        <p className="text-gray-800 mt-4">Amenities</p>
-        <div className="flex flex-wrap gap-4 mt-2 text-gray-700 mb-6">
+        <p className="mb-2 font-medium text-sm text-gray-700">Amenities</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm text-gray-800 mb-8">
           {Object.keys(inputs.amenities).map((amenity, index) => (
-            <label key={index} className="flex items-center gap-2 text-sm">
+            <label key={index} 
+            className="flex items-center gap-2 bg-white/60 px-3 py-2 rounded-lg border border-gray-300 shadow-sm hover:bg-white transition">
               <input
                 type="checkbox"
                 checked={inputs.amenities[amenity]}
@@ -189,7 +192,7 @@ const AddRoom = () => {
 
         <button
           type="submit"
-          className="bg-primary text-white px-8 py-2 rounded disabled:opacity-50"
+          className="bg-black text-white text-sm px-8 py-3 rounded-full transition hover:opacity-90 disabled:opacity-50"
           disabled={loading}
         >
           {loading ? 'Adding...' : 'Add Room'}
